@@ -23,6 +23,6 @@ def read_docs_to_tagged_documents():
 
 docs = read_docs_to_tagged_documents()
 
-model = Doc2Vec(docs, dm=0, vector_size=64, min_count=0, workers=4, epochs=10)
+model = Doc2Vec(docs, dm=0, vector_size=128, min_count=0, workers=4, epochs=10)
 
 model.save('model1.model')
