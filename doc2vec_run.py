@@ -44,19 +44,7 @@ def parseArgs():
     return args
 
 def train_model(docs_dir, model_file):
-    STOP_WORDS = utils.load_stopwords()
-
-    def read_docs_to_tagged_documents():
-        folder = docs_dir
-        out = []
-        for f in os.listdir(folder):
-            full_path = os.path.join(folder, f)
-            if os.path.isfile(full_path):
-                str = " ".join(line.strip() for line in open(full_path, encoding="UTF-8").readlines())
-                out.append(TaggedDocument(utils.cut_and_remove_stopwords(str, STOP_WORDS), [f]))
-        return out
-
-    docs = read_docs_to_tagged_documents()
+    docs = utils.read_docs(lambda str, f: TaggedDocument(utils.cut_and_remove_stopwords(str), [f]))
 
     model = Doc2Vec(docs, dm=0, vector_size=128, min_count=0, workers=4, epochs=10)
 
@@ -99,7 +87,7 @@ def hover_text(sc, fig, ax, names):
 def cluster(model_file):
     model = Doc2Vec.load(model_file)
 
-    cluster_model = AgglomerativeClustering(n_clusters=None, distance_threshold=9)
+    cluster_model = AgglomerativeClustering(n_clusters=None, distance_threshold=8)
 
     cluster_model.fit(model.docvecs.vectors_docs)
     labels = cluster_model.labels_.tolist()
@@ -116,12 +104,13 @@ def cluster(model_file):
     cs = plt.get_cmap('rainbow')(np.linspace(0, 1, max(labels) + 1))
     colors = [cs[i] for i in labels]
 
-    fig,ax = plt.subplots()
+    fig, ax = plt.subplots()
     sc = plt.scatter(datapoint[:, 0], datapoint[:, 1], c=colors)
 
     hover_text(sc, fig, ax, names)
 
     plt.show()
+
 
 if __name__ == "__main__":
     args = parseArgs()
