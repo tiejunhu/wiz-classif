@@ -6,9 +6,10 @@ import utils
 file_names = []
 
 
-def process_doc(str, f):
+def process_doc(data, f):
+    print("processing %s" % f)
     file_names.append(f)
-    return utils.cut_and_remove_stopwords(str)
+    return utils.cut_and_remove_stopwords(data)
 
 docs = utils.read_docs(process_doc)
 dct = Dictionary(docs)
