@@ -1,6 +1,7 @@
 import os
 import re
-import hanlp
+import sys
+from qqseg import qqseg
 
 
 def load_stopwords():
@@ -8,17 +9,30 @@ def load_stopwords():
         'stopwords.txt', encoding='UTF-8').readlines()]
     return stopwords
 
+def init_qqseg():
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    if not qqseg.TCInitSeg(os.path.join(dir_path, "qqseg/data")):
+        print('Init QQSeg failed from %s' % sys.argv[1], file=sys.stderr)
+        sys.exit(1)
+    print('Init QQSeg successful')
+    return qqseg.TCCreateSegHandle(
+        qqseg.TC_CRF | qqseg.TC_PER_W | qqseg.TC_LOC_W | qqseg.TC_ORG_W | 
+        qqseg.TC_NER_DL | qqseg.TC_CUS | qqseg.TC_PRODUCTION
+    )
+
 
 STOP_WORDS = load_stopwords()
-
-TOKENIZER = hanlp.load('LARGE_ALBERT_BASE')
+QQ_HANDLE = init_qqseg()
 
 
 def cut_str(data):
     print("cutting data")
-    words = TOKENIZER(data)
-    flat_words = [item for sublist in words for item in sublist]
-    return flat_words
+    words = []
+    qqseg.TCSegment(QQ_HANDLE, data, len(data.encode("UTF-8")), qqseg.TC_UTF8)
+    for i in range(qqseg.TCGetResultCnt(QQ_HANDLE)):
+        token = qqseg.TCGetBasicTokenAt(QQ_HANDLE, i)
+        words.append(token.word)
+    return words
 
 
 def remove_stopwords(words):
@@ -76,7 +90,7 @@ def read_docs(proc=False):
     out = []
     for f in os.listdir(folder):
         full_path = os.path.join(folder, f)
-        data = read_file_into_lines(full_path)
+        data = read_file(full_path)
         if proc:
             data = proc(data, f)
         out.append(data)

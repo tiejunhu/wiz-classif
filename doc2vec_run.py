@@ -46,7 +46,7 @@ def parseArgs():
 def train_model(docs_dir, model_file):
     docs = utils.read_docs(lambda str, f: TaggedDocument(utils.cut_and_remove_stopwords(str), [f]))
 
-    model = Doc2Vec(docs, dm=0, vector_size=128, min_count=0, workers=4, epochs=10)
+    model = Doc2Vec(docs, dm=0, vector_size=200, min_count=0, workers=4, epochs=6)
 
     print("saving model to " + model_file)
 
@@ -87,7 +87,7 @@ def hover_text(sc, fig, ax, names):
 def cluster(model_file):
     model = Doc2Vec.load(model_file)
 
-    cluster_model = AgglomerativeClustering(n_clusters=None, distance_threshold=8)
+    cluster_model = AgglomerativeClustering(n_clusters=None, distance_threshold=7)
 
     cluster_model.fit(model.docvecs.vectors_docs)
     labels = cluster_model.labels_.tolist()
